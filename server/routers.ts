@@ -32,7 +32,7 @@ export const appRouter = router({
     }),
   }),
   dashboard: router({
-    overview: protectedProcedure.input(dateRangeInput).query(({ input }) => getDashboardData(input.from, input.to)),
+    overview: publicProcedure.input(dateRangeInput).query(({ input }) => getDashboardData(input.from, input.to)),
   }),
   keywords: router({
     overview: protectedProcedure.input(keywordFiltersInput).query(({ input }) => getKeywordTrendData(input)),

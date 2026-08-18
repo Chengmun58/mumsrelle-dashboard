@@ -1,10 +1,11 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
+import type { RequestLike, ResponseLike } from "./httpTypes";
 import { sdk } from "./sdk";
 
 export type TrpcContext = {
-  req: CreateExpressContextOptions["req"];
-  res: CreateExpressContextOptions["res"];
+  req: RequestLike;
+  res: ResponseLike;
   user: User | null;
 };
 

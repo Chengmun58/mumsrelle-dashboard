@@ -5,6 +5,11 @@
 [build.environment]
   NODE_VERSION = "22.22.2"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  included_files = ["server/data/overview-aggregate.json"]
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

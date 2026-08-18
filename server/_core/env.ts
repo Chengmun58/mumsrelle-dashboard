@@ -7,4 +7,9 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  csoSheetId: process.env.CSO_SHEET_ID ?? "",
+  csoKivGid: process.env.CSO_KIV_GID ?? "",
+  csoSignedGid: process.env.CSO_SIGNED_GID ?? "",
+  salesOverviewUrl: process.env.SALES_OVERVIEW_URL ?? "",
+  salesOverviewToken: process.env.SALES_OVERVIEW_TOKEN ?? "",
 };

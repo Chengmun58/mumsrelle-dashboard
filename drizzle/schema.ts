@@ -1,17 +1,7 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -22,7 +12,33 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export type StoredKeywordRow = {
+  date: string;
+  keyword: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+  country: string;
+  device: string;
+  page: string;
+  source: string;
+};
+
+/**
+ * Immutable snapshots of verified keyword imports. Keeping each upload makes
+ * the latest dataset durable across deploys while retaining an audit trail.
+ */
+export const keywordImports = mysqlTable("keyword_imports", {
+  id: int("id").autoincrement().primaryKey(),
+  filename: varchar("filename", { length: 255 }),
+  source: varchar("source", { length: 100 }).notNull(),
+  rowCount: int("rowCount").notNull(),
+  rows: json("rows").$type<StoredKeywordRow[]>().notNull(),
+  importedByUserId: int("importedByUserId").notNull(),
+  importedAt: timestamp("importedAt").defaultNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-// TODO: Add your tables here
+export type KeywordImport = typeof keywordImports.$inferSelect;

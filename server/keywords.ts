@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  getLatestKeywordImport,
+  saveKeywordImport,
+  type KeywordImportRecord,
+} from "./db";
 
 export const keywordRowSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -29,10 +34,37 @@ type KeywordStore = {
   importedAt: string | null;
   filename: string | null;
   source: string;
+  storageWarning: string | null;
 };
 
-const store: KeywordStore = { rows: [], importedAt: null, filename: null, source: "offline-import" };
-const MAX_ROWS = 20000;
+type KeywordPersistence = {
+  loadLatest: () => Promise<KeywordImportRecord | null>;
+  save: (input: {
+    rows: KeywordRow[];
+    filename: string | null;
+    source: string;
+    importedByUserId: number;
+  }) => Promise<KeywordImportRecord>;
+};
+
+const databasePersistence: KeywordPersistence = {
+  loadLatest: getLatestKeywordImport,
+  save: saveKeywordImport,
+};
+
+const emptyStore = (): KeywordStore => ({
+  rows: [],
+  importedAt: null,
+  filename: null,
+  source: "offline-import",
+  storageWarning: null,
+});
+
+let store = emptyStore();
+let hydrated = false;
+let hydrationPromise: Promise<void> | null = null;
+let persistence: KeywordPersistence = databasePersistence;
+const MAX_ROWS = 20_000;
 
 function parseNumber(value: unknown) {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;
@@ -105,46 +137,206 @@ export function parseKeywordFile(format: "csv" | "json", content: string) {
   return records.map(normalizeRecord);
 }
 
-export function importKeywordFile(input: { format: "csv" | "json"; content: string; filename?: string; source?: string }) {
-  const rows = parseKeywordFile(input.format, input.content).map(row => ({ ...row, source: input.source?.trim() || row.source }));
-  store.rows = rows;
-  store.importedAt = new Date().toISOString();
-  store.filename = input.filename?.trim() || null;
-  store.source = input.source?.trim() || "offline-import";
+function applyRecord(record: KeywordImportRecord | null) {
+  if (!record) return;
+  store = {
+    rows: record.rows.map(row => keywordRowSchema.parse(row)),
+    importedAt: record.importedAt.toISOString(),
+    filename: record.filename,
+    source: record.source,
+    storageWarning: null,
+  };
+}
+
+async function ensureHydrated() {
+  if (hydrated) return;
+  if (!hydrationPromise) {
+    hydrationPromise = (async () => {
+      try {
+        applyRecord(await persistence.loadLatest());
+      } catch (error) {
+        store.storageWarning = error instanceof Error ? error.message : "Keyword storage unavailable";
+      } finally {
+        hydrated = true;
+        hydrationPromise = null;
+      }
+    })();
+  }
+  await hydrationPromise;
+}
+
+export async function importKeywordFile(
+  input: { format: "csv" | "json"; content: string; filename?: string; source?: string },
+  importedByUserId: number,
+) {
+  const rows = parseKeywordFile(input.format, input.content).map(row => ({
+    ...row,
+    source: input.source?.trim() || row.source,
+  }));
+  const rowSources = Array.from(new Set(rows.map(row => row.source)));
+  const snapshotSource = input.source?.trim() || (rowSources.length === 1 ? rowSources[0] : "mixed-import");
+  const record = await persistence.save({
+    rows,
+    filename: input.filename?.trim() || null,
+    source: snapshotSource,
+    importedByUserId,
+  });
+  applyRecord(record);
+  hydrated = true;
   return getKeywordMeta();
 }
 
 function filterRows(filters: KeywordFilters) {
   const keyword = filters.keyword?.trim().toLowerCase();
-  return store.rows.filter(row => (!filters.from || row.date >= filters.from) && (!filters.to || row.date <= filters.to) && (!keyword || row.keyword.toLowerCase().includes(keyword)) && (!filters.country || filters.country === "ALL" || row.country === filters.country) && (!filters.device || filters.device === "ALL" || row.device === filters.device) && (!filters.page || filters.page === "ALL" || row.page === filters.page) && (!filters.source || filters.source === "ALL" || row.source === filters.source));
+  return store.rows.filter(row =>
+    (!filters.from || row.date >= filters.from) &&
+    (!filters.to || row.date <= filters.to) &&
+    (!keyword || row.keyword.toLowerCase().includes(keyword)) &&
+    (!filters.country || filters.country === "ALL" || row.country === filters.country) &&
+    (!filters.device || filters.device === "ALL" || row.device === filters.device) &&
+    (!filters.page || filters.page === "ALL" || row.page === filters.page) &&
+    (!filters.source || filters.source === "ALL" || row.source === filters.source)
+  );
 }
 
 function getKeywordMeta() {
-  const rows = store.rows;
-  const dates = rows.map(row => row.date).sort();
-  return { rowCount: rows.length, importedAt: store.importedAt, filename: store.filename, source: store.source, firstDate: dates[0] ?? null, latestDate: dates.at(-1) ?? null };
+  const dates = store.rows.map(row => row.date).sort();
+  return {
+    rowCount: store.rows.length,
+    importedAt: store.importedAt,
+    filename: store.filename,
+    source: store.source,
+    firstDate: dates[0] ?? null,
+    latestDate: dates.at(-1) ?? null,
+    storage: "database" as const,
+    warning: store.storageWarning,
+  };
 }
 
-export function getKeywordOptions() {
-  return { keywords: Array.from(new Set(store.rows.map(row => row.keyword))).sort(), countries: Array.from(new Set(store.rows.map(row => row.country))).sort(), devices: Array.from(new Set(store.rows.map(row => row.device))).sort(), pages: Array.from(new Set(store.rows.map(row => row.page).filter(Boolean))).sort(), sources: Array.from(new Set(store.rows.map(row => row.source))).sort() };
+function getKeywordOptions() {
+  return {
+    keywords: Array.from(new Set(store.rows.map(row => row.keyword))).sort(),
+    countries: Array.from(new Set(store.rows.map(row => row.country))).sort(),
+    devices: Array.from(new Set(store.rows.map(row => row.device))).sort(),
+    pages: Array.from(new Set(store.rows.map(row => row.page).filter(Boolean))).sort(),
+    sources: Array.from(new Set(store.rows.map(row => row.source))).sort(),
+  };
 }
 
-export function getKeywordTrendData(filters: KeywordFilters = {}) {
+export async function getKeywordTrendData(filters: KeywordFilters = {}) {
+  await ensureHydrated();
   const rows = filterRows(filters);
   const byDate = new Map<string, { clicks: number; impressions: number; positionWeighted: number; positionWeight: number }>();
-  const byKeyword = new Map<string, { clicks: number; impressions: number; positionWeighted: number; positionWeight: number; latestPosition: number; previousPosition: number | null; latestDate: string }>();
-  for (const row of [...rows].sort((a, b) => a.date.localeCompare(b.date))) {
+  const byKeyword = new Map<string, {
+    clicks: number;
+    impressions: number;
+    positionWeighted: number;
+    positionWeight: number;
+    dailyPositions: Map<string, { weighted: number; weight: number }>;
+  }>();
+
+  for (const row of rows) {
+    const weight = Math.max(row.impressions, 1);
     const date = byDate.get(row.date) ?? { clicks: 0, impressions: 0, positionWeighted: 0, positionWeight: 0 };
-    date.clicks += row.clicks; date.impressions += row.impressions; date.positionWeighted += row.position * Math.max(row.impressions, 1); date.positionWeight += Math.max(row.impressions, 1); byDate.set(row.date, date);
-    const keyword = byKeyword.get(row.keyword) ?? { clicks: 0, impressions: 0, positionWeighted: 0, positionWeight: 0, latestPosition: row.position, previousPosition: null, latestDate: row.date };
-    keyword.clicks += row.clicks; keyword.impressions += row.impressions; keyword.positionWeighted += row.position * Math.max(row.impressions, 1); keyword.positionWeight += Math.max(row.impressions, 1);
-    if (row.date > keyword.latestDate) { keyword.previousPosition = keyword.latestPosition; keyword.latestPosition = row.position; keyword.latestDate = row.date; }
+    date.clicks += row.clicks;
+    date.impressions += row.impressions;
+    date.positionWeighted += row.position * weight;
+    date.positionWeight += weight;
+    byDate.set(row.date, date);
+
+    const keyword = byKeyword.get(row.keyword) ?? {
+      clicks: 0,
+      impressions: 0,
+      positionWeighted: 0,
+      positionWeight: 0,
+      dailyPositions: new Map(),
+    };
+    keyword.clicks += row.clicks;
+    keyword.impressions += row.impressions;
+    keyword.positionWeighted += row.position * weight;
+    keyword.positionWeight += weight;
+    const daily = keyword.dailyPositions.get(row.date) ?? { weighted: 0, weight: 0 };
+    daily.weighted += row.position * weight;
+    daily.weight += weight;
+    keyword.dailyPositions.set(row.date, daily);
     byKeyword.set(row.keyword, keyword);
   }
-  const trend = Array.from(byDate.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([date, value]) => ({ date, clicks: value.clicks, impressions: value.impressions, ctr: value.impressions ? value.clicks / value.impressions : 0, position: value.positionWeight ? value.positionWeighted / value.positionWeight : 0 }));
-  const topKeywords = Array.from(byKeyword.entries()).sort(([, a], [, b]) => b.clicks - a.clicks || b.impressions - a.impressions).slice(0, 20).map(([keyword, value]) => ({ keyword, clicks: value.clicks, impressions: value.impressions, ctr: value.impressions ? value.clicks / value.impressions : 0, position: value.positionWeight ? value.positionWeighted / value.positionWeight : 0, positionChange: value.previousPosition === null ? null : value.previousPosition - value.latestPosition }));
-  const totals = trend.reduce((result, row) => ({ clicks: result.clicks + row.clicks, impressions: result.impressions + row.impressions, positionWeighted: result.positionWeighted + row.position * Math.max(row.impressions, 1), positionWeight: result.positionWeight + Math.max(row.impressions, 1) }), { clicks: 0, impressions: 0, positionWeighted: 0, positionWeight: 0 });
-  return { meta: getKeywordMeta(), filters, rowCount: rows.length, totals: { clicks: totals.clicks, impressions: totals.impressions, ctr: totals.impressions ? totals.clicks / totals.impressions : 0, position: totals.positionWeight ? totals.positionWeighted / totals.positionWeight : 0 }, trend, topKeywords, options: getKeywordOptions() };
+
+  const trend = Array.from(byDate.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, value]) => ({
+      date,
+      clicks: value.clicks,
+      impressions: value.impressions,
+      ctr: value.impressions ? value.clicks / value.impressions : 0,
+      position: value.positionWeight ? value.positionWeighted / value.positionWeight : 0,
+    }));
+
+  const topKeywords = Array.from(byKeyword.entries())
+    .sort(([, a], [, b]) => b.clicks - a.clicks || b.impressions - a.impressions)
+    .slice(0, 20)
+    .map(([keyword, value]) => {
+      const positions = Array.from(value.dailyPositions.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([, daily]) => daily.weighted / daily.weight);
+      const latest = positions.at(-1) ?? null;
+      const previous = positions.at(-2) ?? null;
+      return {
+        keyword,
+        clicks: value.clicks,
+        impressions: value.impressions,
+        ctr: value.impressions ? value.clicks / value.impressions : 0,
+        position: value.positionWeight ? value.positionWeighted / value.positionWeight : 0,
+        positionChange: latest === null || previous === null ? null : previous - latest,
+      };
+    });
+
+  const totals = trend.reduce(
+    (result, row) => ({
+      clicks: result.clicks + row.clicks,
+      impressions: result.impressions + row.impressions,
+      positionWeighted: result.positionWeighted + row.position * Math.max(row.impressions, 1),
+      positionWeight: result.positionWeight + Math.max(row.impressions, 1),
+    }),
+    { clicks: 0, impressions: 0, positionWeighted: 0, positionWeight: 0 },
+  );
+
+  return {
+    meta: getKeywordMeta(),
+    filters,
+    rowCount: rows.length,
+    totals: {
+      clicks: totals.clicks,
+      impressions: totals.impressions,
+      ctr: totals.impressions ? totals.clicks / totals.impressions : 0,
+      position: totals.positionWeight ? totals.positionWeighted / totals.positionWeight : 0,
+    },
+    trend,
+    topKeywords,
+    options: getKeywordOptions(),
+  };
 }
 
-export const keywordInternals = { parseCsv, parseKeywordFile, getKeywordMeta, filterRows, reset: () => { store.rows = []; store.importedAt = null; store.filename = null; store.source = "offline-import"; } };
+export const keywordInternals = {
+  parseCsv,
+  parseKeywordFile,
+  getKeywordMeta,
+  filterRows,
+  reset: () => {
+    store = emptyStore();
+    hydrated = false;
+    hydrationPromise = null;
+  },
+  usePersistenceForTest: (testPersistence: KeywordPersistence) => {
+    persistence = testPersistence;
+    store = emptyStore();
+    hydrated = false;
+    hydrationPromise = null;
+  },
+  restoreDatabasePersistence: () => {
+    persistence = databasePersistence;
+    store = emptyStore();
+    hydrated = false;
+    hydrationPromise = null;
+  },
+};

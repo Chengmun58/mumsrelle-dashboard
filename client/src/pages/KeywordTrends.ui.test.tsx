@@ -16,6 +16,10 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
+vi.mock("@/_core/hooks/useAuth", () => ({
+  useAuth: () => ({ user: { id: 1, name: "Admin", role: "admin" } }),
+}));
+
 vi.mock("recharts", () => {
   const Stub = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>;
   return { Area: Stub, AreaChart: Stub, Bar: Stub, BarChart: Stub, CartesianGrid: Stub, ResponsiveContainer: Stub, Tooltip: Stub, XAxis: Stub, YAxis: Stub };

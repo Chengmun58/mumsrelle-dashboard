@@ -49,6 +49,21 @@ describe("dashboard calculations", () => {
     vi.useRealTimers();
   });
 
+  it("counts unique new leads and uses the signed-up status date", async () => {
+    dashboardInternals.resetCsoCache();
+    const loader = async () => [[
+      ["Case Status", "KIV Date", "Call In Date", "Contact No.", "Source"],
+      ["KIV", "20/08/2026", "18/08/2026", "91234567", "Referral"],
+    ], [
+      ["Case Status", "Call In Date", "SC Status Date", "Contact No."],
+      ["Signed Up", "18/08/2026", "20/08/2026", "91234567"],
+      ["Signed Up", "01/08/2026", "18/08/2026", "92345678"],
+    ]] as [string[][], string[][]];
+    const result = await dashboardInternals.getCsoSummaryForTest("2026-08-18", "2026-08-18", loader);
+    expect(result.newLeads).toBe(1);
+    expect(result.signedUp).toBe(1);
+  });
+
   it("returns a warning instead of throwing when CSO loading fails", async () => {
     dashboardInternals.resetCsoCache();
     const result = await dashboardInternals.loadCsoSafelyForTest("2026-08-18", "2026-08-18", async () => {

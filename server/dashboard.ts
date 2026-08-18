@@ -88,10 +88,12 @@ async function fetchCsv(gid: string) {
   return parseCsv(await response.text());
 }
 
-async function getCsoSummary(from: string, to: string): Promise<CsoSummary> {
+type CsoLoader = () => Promise<[string[][], string[][]]>;
+
+async function getCsoSummary(from: string, to: string, loader: CsoLoader = async () => Promise.all([fetchCsv(KIV_GID), fetchCsv(SIGNED_GID)])): Promise<CsoSummary> {
   const key = `${from}:${to}`;
   if (csoCache && csoCache.key === key && csoCache.expiresAt > Date.now()) return csoCache.value;
-  const [kivRows, signedRows] = await Promise.all([fetchCsv(KIV_GID), fetchCsv(SIGNED_GID)]);
+  const [kivRows, signedRows] = await loader();
   const kiv = rowsToObjects(kivRows);
   const signed = rowsToObjects(signedRows);
   const today = todayInSingapore();
@@ -146,6 +148,14 @@ function sumRange(values: Record<string, number>, from: string, to: string) {
   return Object.entries(values).reduce((sum, [date, value]) => sum + (date >= from && date <= to ? Number(value) : 0), 0);
 }
 
+async function loadCsoSafely(from: string, to: string, loader?: CsoLoader) {
+  try {
+    return { cso: await getCsoSummary(from, to, loader), warning: null as string | null };
+  } catch (error) {
+    return { cso: null, warning: error instanceof Error ? error.message : "CSO data unavailable" };
+  }
+}
+
 export async function getDashboardData(from: string, to: string) {
   const [previousFrom, previousTo] = previousRange(from, to);
   const current = sumRange(overview.salesDaily, from, to);
@@ -160,13 +170,9 @@ export async function getDashboardData(from: string, to: string) {
     departments["RETAIL PRODUCT"] += Number(values["RETAIL PRODUCT"] ?? 0);
     departments.FACE += Number(values.FACE ?? 0);
   }
-  let cso: CsoSummary | null = null;
-  let warning: string | null = null;
-  try {
-    cso = await getCsoSummary(from, to);
-  } catch (error) {
-    warning = error instanceof Error ? error.message : "CSO data unavailable";
-  }
+  const csoResult = await loadCsoSafely(from, to);
+  const cso = csoResult.cso;
+  const warning = csoResult.warning;
   return {
     range: { from, to, previousFrom, previousTo },
     sales: {
@@ -189,4 +195,14 @@ export async function getDashboardData(from: string, to: string) {
   };
 }
 
-export const dashboardInternals = { previousRange, parseDate, CACHE_MS };
+export const dashboardInternals = {
+  previousRange,
+  parseDate,
+  sumRange,
+  CACHE_MS,
+  cacheWindow: () => ({ durationMs: CACHE_MS, durationMinutes: CACHE_MS / 60000 }),
+  outsideOverview: (from: string, to: string, dates: string[]) => dates.length === 0 || to < dates[0] || from > dates[dates.length - 1],
+  resetCsoCache: () => { csoCache = null; },
+  getCsoSummaryForTest: getCsoSummary,
+  loadCsoSafelyForTest: loadCsoSafely,
+};

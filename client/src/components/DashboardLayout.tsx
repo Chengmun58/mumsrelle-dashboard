@@ -13,20 +13,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/useMobile";
-import { BarChart3, Boxes, BriefcaseBusiness, ChartNoAxesCombined, ClipboardList, Database, KeyRound, LayoutDashboard, PanelLeft, Users } from "lucide-react";
+import { LayoutDashboard, PanelLeft } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: KeyRound, label: "Keyword Trends", path: "/keyword-trends" },
-  { icon: BarChart3, label: "Sales Reports", path: "/sales-reports" },
-  { icon: Users, label: "Customer Reports", path: "/customer-reports" },
-  { icon: BriefcaseBusiness, label: "Marketing", path: "/marketing" },
-  { icon: ChartNoAxesCombined, label: "Employee Performance", path: "/employee-performance" },
-  { icon: ClipboardList, label: "Commission", path: "/commission" },
-  { icon: Boxes, label: "Stock", path: "/stock" },
-  { icon: Database, label: "Master Data", path: "/master-data" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

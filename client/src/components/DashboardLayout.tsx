@@ -13,12 +13,19 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, PanelLeft } from "lucide-react";
+import {
+  BarChart3,
+  LayoutDashboard,
+  PanelLeft,
+  UsersRound,
+} from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: BarChart3, label: "Sales Reports", path: "/sales-reports" },
+  { icon: UsersRound, label: "Customer Reports", path: "/customer-reports" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -161,11 +168,15 @@ function DashboardLayoutContent({
           <SidebarFooter className="p-3">
             <div className="flex items-center gap-3 rounded-lg px-1 py-1">
               <Avatar className="h-9 w-9 border shrink-0">
-                <AvatarFallback className="text-xs font-medium">M</AvatarFallback>
+                <AvatarFallback className="text-xs font-medium">
+                  M
+                </AvatarFallback>
               </Avatar>
               <div className="min-w-0 group-data-[collapsible=icon]:hidden">
                 <p className="text-sm font-medium leading-none">MUMSRELLE</p>
-                <p className="mt-1.5 text-xs text-muted-foreground">Password-protected access</p>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Password-protected access
+                </p>
               </div>
             </div>
           </SidebarFooter>

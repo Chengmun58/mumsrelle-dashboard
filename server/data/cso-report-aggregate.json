@@ -1,0 +1,188 @@
+{
+  "source": {
+    "title": "MUMSRELLE 联系人数据库",
+    "recordSource": "Mumsrelle CSO Casesheet",
+    "driveUpdatedAt": "2026-08-17",
+    "snapshotAt": "2026-08-18",
+    "privacy": "Aggregated reporting fields only; no names, phone numbers, email addresses or notes."
+  },
+  "totals": {
+    "records": 15281,
+    "activeKiv": 2473,
+    "signedUp": 661,
+    "declined": 12118,
+    "waitingList": 1,
+    "signedRate": 4.3,
+    "signedShareOfOpenAndWon": 21.1
+  },
+  "statusBreakdown": [
+    { "name": "Decline", "count": 12118 },
+    { "name": "KIV", "count": 2473 },
+    { "name": "Signed Up", "count": 661 },
+    { "name": "Waiting List", "count": 1 }
+  ],
+  "topSources": [
+    { "name": "PEM", "count": 3822 },
+    { "name": "TWSIG", "count": 2835 },
+    { "name": "Physical Fair", "count": 2589 },
+    { "name": "PNSG", "count": 2090 },
+    { "name": "FB Ads, PRHB $89", "count": 967 },
+    { "name": "CH PRHB FB Ads", "count": 833 },
+    { "name": "Bliss Helper", "count": 414 },
+    { "name": "Facebook", "count": 311 },
+    { "name": "Others", "count": 247 },
+    { "name": "FB Ads, PRHB $79", "count": 178 },
+    { "name": "Instagram", "count": 173 },
+    { "name": "FB Lead Ads 50 Ladies Trial", "count": 102 }
+  ],
+  "serviceCategories": [
+    { "name": "Promotion 8", "count": 8936 },
+    { "name": "PRHB", "count": 2311 },
+    { "name": "Bliss Helper", "count": 1113 },
+    { "name": "Confinement Combos", "count": 920 },
+    { "name": "SC", "count": 673 },
+    { "name": "Other", "count": 580 },
+    { "name": "SC Leads", "count": 353 },
+    { "name": "PRHB Trial", "count": 226 },
+    { "name": "Centre Trial", "count": 62 },
+    { "name": "Unspecified", "count": 55 },
+    { "name": "Postpartum Wellness", "count": 52 }
+  ],
+  "prhbStatus": [
+    { "name": "Give Up", "count": 10699 },
+    { "name": "Interested", "count": 1667 },
+    { "name": "Client Reject", "count": 1236 },
+    { "name": "Respond.io", "count": 334 },
+    { "name": "Can't Take", "count": 97 },
+    { "name": "Day 3 Done", "count": 24 },
+    { "name": "Ask Only", "count": 23 },
+    { "name": "SU Package", "count": 20 },
+    { "name": "Day 2 Done", "count": 16 },
+    { "name": "Day 1 Done", "count": 14 },
+    { "name": "By Client", "count": 9 },
+    { "name": "Trial FU", "count": 5 },
+    { "name": "Deposit Only", "count": 1 },
+    { "name": "Trial Arranged", "count": 1 }
+  ],
+  "scStatus": [
+    { "name": "Give Up", "count": 10748 },
+    { "name": "Interested", "count": 1657 },
+    { "name": "Client Reject", "count": 1283 },
+    { "name": "SU Package", "count": 650 },
+    { "name": "Respond.io", "count": 334 },
+    { "name": "Deposit Only", "count": 163 },
+    { "name": "Can't Take", "count": 135 },
+    { "name": "Day 2 Done", "count": 47 },
+    { "name": "Ask Only", "count": 45 },
+    { "name": "Trial Arranged", "count": 37 },
+    { "name": "Trial FU", "count": 28 },
+    { "name": "Day 3 Done", "count": 24 },
+    { "name": "Day 1 Done", "count": 23 },
+    { "name": "By Client", "count": 21 }
+  ],
+  "appointmentStatus": [
+    { "name": "Attended", "count": 1384 },
+    { "name": "Attented", "count": 6 }
+  ],
+  "declineReasons": [
+    { "name": "NA", "count": 10213 },
+    { "name": "Not interested", "count": 528 },
+    { "name": "Pass promo", "count": 449 },
+    { "name": "Invalid no./ Wrong no.", "count": 200 },
+    { "name": "Unsubscribe", "count": 196 },
+    { "name": "No reason", "count": 100 },
+    { "name": "No time", "count": 94 },
+    { "name": "No need", "count": 93 },
+    { "name": "Fussy client", "count": 32 },
+    { "name": "Too far", "count": 32 },
+    { "name": "Not suitable", "count": 27 },
+    { "name": "Price", "count": 26 }
+  ],
+  "monthlyActivity": [
+    {
+      "month": "2026-01",
+      "lastContact": 354,
+      "prhbActivity": 319,
+      "scActivity": 358,
+      "appointments": 48,
+      "signedUpActivity": 29,
+      "kivActivity": 1
+    },
+    {
+      "month": "2026-02",
+      "lastContact": 252,
+      "prhbActivity": 237,
+      "scActivity": 257,
+      "appointments": 22,
+      "signedUpActivity": 12,
+      "kivActivity": 0
+    },
+    {
+      "month": "2026-03",
+      "lastContact": 503,
+      "prhbActivity": 461,
+      "scActivity": 531,
+      "appointments": 43,
+      "signedUpActivity": 20,
+      "kivActivity": 5
+    },
+    {
+      "month": "2026-04",
+      "lastContact": 672,
+      "prhbActivity": 583,
+      "scActivity": 582,
+      "appointments": 42,
+      "signedUpActivity": 25,
+      "kivActivity": 13
+    },
+    {
+      "month": "2026-05",
+      "lastContact": 292,
+      "prhbActivity": 221,
+      "scActivity": 284,
+      "appointments": 44,
+      "signedUpActivity": 25,
+      "kivActivity": 6
+    },
+    {
+      "month": "2026-06",
+      "lastContact": 468,
+      "prhbActivity": 434,
+      "scActivity": 454,
+      "appointments": 42,
+      "signedUpActivity": 27,
+      "kivActivity": 10
+    },
+    {
+      "month": "2026-07",
+      "lastContact": 611,
+      "prhbActivity": 557,
+      "scActivity": 604,
+      "appointments": 48,
+      "signedUpActivity": 26,
+      "kivActivity": 63
+    },
+    {
+      "month": "2026-08",
+      "lastContact": 869,
+      "prhbActivity": 708,
+      "scActivity": 854,
+      "appointments": 24,
+      "signedUpActivity": 15,
+      "kivActivity": 682
+    }
+  ],
+  "quality": {
+    "futureDatedFields": {
+      "lastContact": 1853,
+      "prhbStatusDate": 1524,
+      "scStatusDate": 1667,
+      "appointmentDate": 0
+    },
+    "appointmentSpellingVariant": 6,
+    "notes": [
+      "Future-dated values extend to 2031 in status/contact date fields.",
+      "Monthly KIV/Signed Up activity uses the latest non-future contact or status date available in the reporting mirror."
+    ]
+  }
+}

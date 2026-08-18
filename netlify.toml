@@ -1,14 +1,15 @@
 [build]
-  command = "pnpm build"
+  command = "npm run build"
   publish = "dist/public"
 
 [build.environment]
   NODE_VERSION = "22.22.2"
+  NPM_FLAGS = "--legacy-peer-deps"
 
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  included_files = ["server/data/overview-aggregate.json"]
+  included_files = ["server/data/overview-aggregate.json", "server/data/cso-report-aggregate.json"]
 
 [[redirects]]
   from = "/*"

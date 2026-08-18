@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getDashboardData } from "./dashboard";
 import { getKeywordTrendData, importKeywordFile } from "./keywords";
 import { z } from "zod";
@@ -32,11 +32,18 @@ export const appRouter = router({
     }),
   }),
   dashboard: router({
-    overview: publicProcedure.input(dateRangeInput).query(({ input }) => getDashboardData(input.from, input.to)),
+    overview: protectedProcedure.input(dateRangeInput).query(({ input }) => getDashboardData(input.from, input.to)),
   }),
   keywords: router({
-    overview: publicProcedure.input(keywordFiltersInput).query(({ input }) => getKeywordTrendData(input)),
-    import: publicProcedure.input(z.object({ format: z.enum(["csv", "json"]), content: z.string().min(1).max(8_000_000), filename: z.string().max(255).optional(), source: z.string().max(100).optional() })).mutation(({ input }) => importKeywordFile(input)),
+    overview: protectedProcedure.input(keywordFiltersInput).query(({ input }) => getKeywordTrendData(input)),
+    import: adminProcedure
+      .input(z.object({
+        format: z.enum(["csv", "json"]),
+        content: z.string().min(1).max(8_000_000),
+        filename: z.string().max(255).optional(),
+        source: z.string().max(100).optional(),
+      }))
+      .mutation(({ input, ctx }) => importKeywordFile(input, ctx.user.id)),
   }),
 });
 

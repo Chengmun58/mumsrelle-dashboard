@@ -97,13 +97,14 @@ function MetricCard({ label, value, sub, tone = "purple", delta }: { label: stri
 }
 
 export default function Home() {
-  const initialFrom = "2025-12-01";
-  const initialTo = "2025-12-31";
+  const initialToday = new Date();
+  const initialFrom = iso(new Date(initialToday.getFullYear(), initialToday.getMonth(), 1));
+  const initialTo = iso(new Date(initialToday.getFullYear(), initialToday.getMonth() + 1, 0));
   const [from, setFrom] = useState(initialFrom);
   const [to, setTo] = useState(initialTo);
   const [activeQuick, setActiveQuick] = useState<string>("This Month");
-  const [month, setMonth] = useState("11");
-  const [year, setYear] = useState("2025");
+  const [month, setMonth] = useState(String(initialToday.getMonth()));
+  const [year, setYear] = useState(String(initialToday.getFullYear()));
   const query = trpc.dashboard.overview.useQuery({ from, to }, { refetchInterval: 300000, staleTime: 300000 });
   const data = query.data;
 

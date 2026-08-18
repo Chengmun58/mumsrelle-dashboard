@@ -31,11 +31,35 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  app.disable("x-powered-by");
+  app.use((req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    if (req.path.startsWith("/api/")) res.setHeader("Cache-Control", "no-store");
+    next();
+  });
+  app.use(express.json({ limit: "10mb" }));
+  app.use(express.urlencoded({ limit: "10mb", extended: true }));
+  app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+  app.use("/api/trpc", (req, res, next) => {
+    const origin = req.headers.origin;
+    const host = req.get("host");
+    if (req.method !== "GET" && origin && host) {
+      try {
+        if (new URL(origin).host !== host) {
+          res.status(403).json({ error: "Cross-origin API request rejected" });
+          return;
+        }
+      } catch {
+        res.status(403).json({ error: "Invalid request origin" });
+        return;
+      }
+    }
+    next();
+  });
   // tRPC API
   app.use(
     "/api/trpc",

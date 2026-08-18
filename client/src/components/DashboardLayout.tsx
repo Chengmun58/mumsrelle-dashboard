@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { BarChart3, Boxes, BriefcaseBusiness, ChartNoAxesCombined, ClipboardList, Database, LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
+import { BarChart3, Boxes, BriefcaseBusiness, ChartNoAxesCombined, ClipboardList, Database, KeyRound, LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -29,6 +29,7 @@ import { Button } from "./ui/button";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: KeyRound, label: "Keyword Trends", path: "/keyword-trends" },
   { icon: BarChart3, label: "Sales Reports", path: "/sales-reports" },
   { icon: Users, label: "Customer Reports", path: "/customer-reports" },
   { icon: BriefcaseBusiness, label: "Marketing", path: "/marketing" },

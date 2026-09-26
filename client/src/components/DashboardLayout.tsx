@@ -15,6 +15,7 @@ import {
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   BarChart3,
+  CalendarDays,
   LayoutDashboard,
   PanelLeft,
   UsersRound,
@@ -26,6 +27,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: BarChart3, label: "Sales Reports", path: "/sales-reports" },
   { icon: UsersRound, label: "Customer Reports", path: "/customer-reports" },
+  { icon: CalendarDays, label: "CSO Daily Update", path: "/cso-daily" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

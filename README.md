@@ -77,3 +77,9 @@ Run `pnpm db:push` as a release step before starting a new production version. G
 ## Security note
 
 An earlier revision contained the CSO Sheet ID and worksheet GIDs in source history. Configure a new restricted publishing arrangement or replace the source sheet before production deployment; moving the values to environment variables prevents future exposure but does not erase Git history.
+
+## CSO Daily Update
+
+The historical daily page reads the eight numeric columns of the original `CSO Daily Update` tab through server-side CSV access. Configure `CSO_DAILY_GID` for that tab; if it is unavailable, the page explicitly shows a warning and displays only separately saved MySQL rows. Text found in a numeric cell is shown for review rather than silently coerced.
+
+The dashboard password still gates the Netlify site. The daily page additionally requires a named OAuth account for reads and an OAuth admin account for edits, so revisions can record a real editor ID. MySQL edits take precedence for their date in the page, while the Google Sheet stays unchanged. Run `pnpm db:push` before enabling the page.

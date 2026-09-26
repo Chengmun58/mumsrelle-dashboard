@@ -6,6 +6,7 @@ import PasswordGate from "./components/PasswordGate";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import CustomerReports from "./pages/CustomerReports";
+import CsoDailyUpdates from "./pages/CsoDailyUpdates";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 
@@ -30,6 +31,11 @@ function Router() {
       <Route path="/customer-reports">
         <DashboardLayout>
           <CustomerReports />
+        </DashboardLayout>
+      </Route>
+      <Route path="/cso-daily">
+        <DashboardLayout>
+          <CsoDailyUpdates />
         </DashboardLayout>
       </Route>
       <Route path="/marketing">

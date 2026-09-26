@@ -10,6 +10,7 @@ export const ENV = {
   csoSheetId: process.env.CSO_SHEET_ID ?? "",
   csoKivGid: process.env.CSO_KIV_GID ?? "",
   csoSignedGid: process.env.CSO_SIGNED_GID ?? "",
+  csoDailyGid: process.env.CSO_DAILY_GID ?? "",
   salesOverviewUrl: process.env.SALES_OVERVIEW_URL ?? "",
   salesOverviewToken: process.env.SALES_OVERVIEW_TOKEN ?? "",
 };

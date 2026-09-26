@@ -42,3 +42,33 @@ export const keywordImports = mysqlTable("keyword_imports", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type KeywordImport = typeof keywordImports.$inferSelect;
+
+export type CsoDailyCounts = {
+  kivApproach: number | null;
+  existingCustomerApproach: number | null;
+  baArranged: number | null;
+  newLeadSent: number | null;
+  promo8RioVersion: number | null;
+  oldPromo8: number | null;
+  newPromo8: number | null;
+  pelvicEnhancement: number | null;
+};
+
+/** Independent manual daily ledger; never writes to the source Casesheet. */
+export const csoDailyUpdates = mysqlTable("cso_daily_updates", {
+  day: varchar("day", { length: 10 }).primaryKey(),
+  counts: json("counts").$type<CsoDailyCounts>().notNull(),
+  updatedByUserId: int("updatedByUserId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Every change to a daily entry is retained separately. */
+export const csoDailyRevisions = mysqlTable("cso_daily_revisions", {
+  id: int("id").autoincrement().primaryKey(),
+  day: varchar("day", { length: 10 }).notNull(),
+  before: json("before").$type<CsoDailyCounts | null>(),
+  after: json("after").$type<CsoDailyCounts>().notNull(),
+  changedByUserId: int("changedByUserId").notNull(),
+  changedAt: timestamp("changedAt").defaultNow().notNull(),
+});

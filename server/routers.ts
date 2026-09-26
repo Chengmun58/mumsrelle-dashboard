@@ -11,6 +11,7 @@ import { getDashboardData } from "./dashboard";
 import { getCustomerReportData } from "./customerReports";
 import { getKeywordTrendData, importKeywordFile } from "./keywords";
 import { z } from "zod";
+import { listCsoDaily, saveCsoDaily } from "./csoDaily";
 
 const dateRangeInput = z
   .object({
@@ -52,6 +53,23 @@ export const appRouter = router({
   }),
   customerReports: router({
     overview: publicProcedure.query(() => getCustomerReportData()),
+  }),
+  csoDaily: router({
+    list: protectedProcedure.input(dateRangeInput)
+      .query(({ input }) => listCsoDaily(input.from, input.to)),
+    save: adminProcedure.input(z.object({
+      day: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/),
+      counts: z.object({
+        kivApproach: z.number().int().min(0).nullable(),
+        existingCustomerApproach: z.number().int().min(0).nullable(),
+        baArranged: z.number().int().min(0).nullable(),
+        newLeadSent: z.number().int().min(0).nullable(),
+        promo8RioVersion: z.number().int().min(0).nullable(),
+        oldPromo8: z.number().int().min(0).nullable(),
+        newPromo8: z.number().int().min(0).nullable(),
+        pelvicEnhancement: z.number().int().min(0).nullable(),
+      }).strict(),
+    })).mutation(({ input, ctx }) => saveCsoDaily(input.day, input.counts, ctx.user.id)),
   }),
   keywords: router({
     overview: protectedProcedure

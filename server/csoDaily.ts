@@ -46,7 +46,7 @@ export async function listCsoDaily(from: string, to: string) {
   for (const row of saved) {
     rows.set(row.day, { day: row.day, counts: row.counts, updatedAt: row.updatedAt, origin: "manual", invalidCells: [] });
   }
-  return { entries: [...rows.values()].sort((a,b) => b.day.localeCompare(a.day)), sourceFetchedAt, warning };
+  return { entries: Array.from(rows.values()).sort((a,b) => b.day.localeCompare(a.day)), sourceFetchedAt, warning };
 }
 
 export async function saveCsoDaily(day: string, counts: CsoDailyCounts, userId: number) {

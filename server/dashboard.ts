@@ -21,6 +21,7 @@ type CsoSummary = {
   overdue: number;
   newLeads: number;
   signedUp: number;
+  signedUpDateMissing: number;
   topSources: Array<{ name: string; count: number }>;
   refreshedAt: string;
 };
@@ -138,16 +139,11 @@ function leadKey(row: Record<string, string>, index: number) {
 }
 
 function signedUpDate(row: Record<string, string>) {
-  const candidates = [
-    "Signed Up Date",
-    "SC Status Date",
-    "PRHB Status Date",
-    "Case Status Date",
-    "Call In Date",
-  ];
-  for (const name of candidates) {
-    const parsed = parseDate(rowValue(row, [name]));
-    if (parsed) return parsed;
+  const explicitDate = parseDate(rowValue(row, ["Signed Up Date"]));
+  if (explicitDate) return explicitDate;
+  // A service status date is signup evidence only when that service is signed up.
+  if (rowValue(row, ["SC Status"]).toLowerCase() === "su package") {
+    return parseDate(rowValue(row, ["SC Status Date"]));
   }
   return null;
 }
@@ -187,6 +183,7 @@ async function getCsoSummary(
     }).length,
     newLeads: uniqueLeadKeys.size,
     signedUp: signed.filter(row => isSigned(row) && inPeriod(signedUpDate(row))).length,
+    signedUpDateMissing: signed.filter(row => isSigned(row) && !signedUpDate(row)).length,
     topSources: Array.from(sourceCounts.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
@@ -254,7 +251,13 @@ function sumRange(values: Record<string, number>, from: string, to: string) {
 
 async function loadCsoSafely(from: string, to: string, loader?: CsoLoader) {
   try {
-    return { cso: await getCsoSummary(from, to, loader), warning: null as string | null };
+    const cso = await getCsoSummary(from, to, loader);
+    return {
+      cso,
+      warning: cso.signedUpDateMissing
+        ? `${cso.signedUpDateMissing} current signed-up records have no supported signup date and are excluded from period signup totals.`
+        : null,
+    };
   } catch (error) {
     return { cso: null, warning: error instanceof Error ? error.message : "CSO data unavailable" };
   }
